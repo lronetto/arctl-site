@@ -1,0 +1,289 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Sistema de sensoriamento e acionamento</title>
+    <link rel="stylesheet" href="js/jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/jqwidgets/scripts/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="js/jqwidgets4_1_2/jqxcore.js"></script>
+    <script type="text/javascript" src="js/jqwidgets4_1_2/jqxdata.js"></script>
+    <script type="text/javascript" src="js/jqwidgets4_1_2/jqxwindow.js"></script>
+    <script type="text/javascript" src="js/jqwidgets4_1_2/jqxdraw.js"></script>
+    <script type="text/javascript" src="js/jqwidgets4_1_2/jqxchart.core.js"></script>
+    <script type="text/javascript" src="js/jqwidgets4_1_2/jqxchart.rangeselector.js"></script>
+    <script type="text/javascript" src="js/jqwidgets4_1_2/jqxloader.js"></script>
+    <script type="text/javascript" src="js/jqwidgets4_1_2/jqxbuttons.js"></script>
+    <script type="text/javascript" src="js/jqwidgets4_1_2/jqxslider.js"></script>
+    <script type="text/javascript" src="js/moment.js"></script>
+    <script type="text/javascript" src="grafico.js"></script> 
+
+	<script>
+	// Quando carregado a p������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������gina
+function graf(){
+	var tipo=$('#graf_tipo').val();	
+	if(tipo==1)
+		grafico(tipo,$('#graf_disp').val(),$('#graf_per').val(),$('#graf_graf'),$('#graf_loader'));
+	if(tipo==2)
+		grafico1(tipo,$('#graf_disp').val(),$('#graf_per').val(),$('#graf_graf'),$('#graf_loader'));
+	if(tipo==3)
+		graficoChopeira(tipo,$('#graf_disp').val(),$('#graf_per').val(),$('#graf_graf'),$('#graf_loader'));
+	}
+	
+$(document).ready(
+function() {
+	var graf_title,graf_desc,graf_var_unid,graf_var_nome;
+	$('#jqxWidget').hide();
+	$('#disp_tab').hide();
+	$('#graf_tab').hide();
+	_createWindow();
+	
+	$('#disp_m').click(function(){
+		$('#graf_tab').hide();
+		$('#disp_tab').show();
+		$('#disp_dat').load('disp_func.php?act=dat');
+		});
+	$('#disp_atu').click(function(){
+		$('#disp_dat').load('disp_func.php?act=dat');
+		});
+	$('#disp_salva').click(function(){
+		//alert($('#disp_id').val());
+		$.get('disp_func.php',{	act: 'atu', 
+								id:		$('#disp_id').val(),
+								nome: 	$('#disp_nome').val(),
+								modo: 	$('#disp_modo').val(),
+								set:	$('#disp_set').val(),
+								hist:	$('#disp_hist').val(),
+								tempo:	$('#disp_tempo').val(),
+								pidp:	$('#disp_p').val(),
+								pidi:	$('#disp_i').val(),
+								pidd:	$('#disp_d').val()},
+			function(resp){
+				$('#debug').html(resp);
+				$('#window').jqxWindow('close');
+				$('#disp_dat').load('disp_func.php?act=dat');
+			});
+		
+	});
+	$('#disp_tempo').jqxSlider({
+        showTickLabels: true, tooltip: true, mode: "fixed", height: 60, min: 5, max: 255, ticksFrequency: 1, value: 0, step: 1,
+        tickLabelFormatFunction: function (value){
+            if (value == 0) return value;
+            if (value == 255) return value;
+            return "";
+        	}
+    	});
+	$('#graf_m').click(function(){
+		$('#graf_tab').show();
+		$('#disp_tab').hide();
+		$('#graf_disp').load('graf_func.php?act=disp');
+		});
+	$('#graf_disp').change(function(){
+		graf();
+		}); 
+	$('#graf_per').change(function(){
+		graf();
+		});
+	$('#graf_atu').click(function(){
+		graf();
+		});
+	$('#graf_tipo').change(function(){
+		graf();
+	});
+	$('#disp_tempo').on('change', function (event) {
+		$('#disp_tempos').html('('+event.args.value+' Segundos)');
+	});
+});
+
+function disp_edit(id){
+	
+	$('#disp_modo').load('disp_func.php?act=modo');
+	$.get("disp_func.php",{id: id,act: "edit"},
+			function(resp){
+				//alert(resp);
+				var obj=JSON.parse(resp);
+				//alert('tempo: '+obj['tempo']+' setpoint: '+obj['setpoint']+' hist: '+obj['hist']);
+				$('#disp_id').val(id);
+				$('#disp_nome').val(obj['nome']);
+				$('#disp_tempo').jqxSlider({value: obj['tempo']});
+				$('#disp_tempos').html('('+obj['tempo']+' Segundos)');
+				$('#disp_set').val(obj['setpoint']);
+				$('#disp_hist').val(obj['hist']);
+				$('#disp_modo').val(obj['modo']);
+				$('#disp_p').val(obj['pidp']);
+				$('#disp_i').val(obj['pidi']);
+				$('#disp_d').val(obj['pidd']);
+				$('#window').jqxWindow('open');
+				});
+				
+}
+function varconf_edit(id){
+	$('#varconf_id').val(id);
+	$.get("varconf_func.php?act=edit",{
+					id:	id},function(resp){
+						var obj=JSON.parse(resp);
+						$('#varconf_tempo').val(obj['tempo']);
+						$('#varconf_nome').val(obj['nome']);
+						$('#varconf_media').val(obj['media']);
+					});
+	}
+
+function _createWindow() {
+	
+    var jqxWidget = $('#jqxWidget');
+    var offset = jqxWidget.offset();
+    $('#window').jqxWindow({
+        position: { x: offset.left + 550, y: offset.top + 90} ,
+        height: 290, width: 330,
+        initContent: function () {
+            //$('#tab').jqxTabs({ height: '100%', width:  '100%' });
+        	$('#window').jqxWindow('close');
+        }
+    });
+   
+};
+//function grafico
+</script>
+</head>
+<body>
+<table align=center border=0 width=100%>
+	<tr>
+		<td align=center>
+			<h1>
+				<a href='#' id=disp_m>Dispositivos</a> |
+				<a href='#' id=graf_m >Graficos</a>
+			</h1>
+		</td>
+	</tr>
+	<tr>
+		<td align=center>
+		<div id=debug></div>
+			<hr>
+			<div id='disp_tab'>
+				<div id="jqxWidget">
+					<div id="window">
+ 						<div style="overflow: hidden; background-color: #D3D3D3	;" id="windowContent" align=center>
+ 							<input type=hidden id=disp_id>
+							<table border=0 align="center" width=100%>
+								<tr>
+									<td width=2%>
+										Nome:
+									</td>
+									<td colspan=3>
+										<input type=text id=disp_nome>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										Modo:
+									</td>
+									<td colspan=3>
+										<select id=disp_modo></select>
+									</td>
+								</tr>
+								<tr>
+									<td width=1%>
+										Setpoint:
+									</td>
+									<td width=5%>
+										<input type=text id=disp_set size=3>
+									</td>
+									<td width=5%>
+										Histereze:
+									</td>
+									<td colspan=2>
+										<input type=text id=disp_hist size=3>
+									</td>
+								</tr>
+								
+								<tr>
+									<td align=center colspan=5>PID</td>
+								</tr>
+								<tr>
+									<td colspan=4 align=center>
+										P:<input type=text size=3 id=disp_p>
+										I:<input type=text size=3 id=disp_i>
+										D:<input type=text size=3 id=disp_d>
+									</td>
+								<tr>
+									<td colspan=4 align=center>Tempo de Envio <div id=disp_tempos style="display: inline"></div>:</td>
+								</tr>
+								<tr>
+									<td colspan=4 align=center>
+						            	<div style="float: left">
+						            		<div id='disp_tempo'></div>
+						            	</div>
+								   </td>
+								</tr>
+								<tr>
+									<td colspan=4 align=center>
+										<input type=button id=disp_salva value=Salvar>
+									</td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+			<table border='0'>
+				<tr>
+					<td>
+						<div id=disp_dat></div>
+					</td>
+				</tr>
+				<tr>
+					<td align=center>
+						<input type='button' id='disp_atu' value='Atualizar'>
+					</td>
+				</tr>
+			</table>	
+			</div>
+			<div id='graf_tab'>
+				<table border=0 width=100%>
+					<tr>
+						<td align=center>
+							<h1>Graficos</h1>
+						</td>
+					</tr>
+					<tr>
+						<td align=center>
+							<table>
+								<tr>
+									<td align=right>Dispositivo:</td><td><select id=graf_disp></select></td>
+									<td>Tipo:</td>
+									<td>
+										<select id=graf_tipo>
+										<option value=1 selected>Temperaturas</option>
+										<option value=2>Temperaturas + Humidade</option>
+										<option value=3>Chopeira</option>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<td>Periodo</td>
+									<td colspan=3>
+										<select id=graf_per>
+										<option value=1 selected>Ultima hora</option>
+										<option value=6>Ultimas duas horas</option>
+										<option value=7>Ultimas 6 horas</option>
+										<option value=2>Ultimas 12h</option>
+										<option value=3>Ultimas 24h</option>
+										<option value=4>Ultima semana</option>
+										<option value=5>Ultimo mes</option>
+										</select>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					<tr>
+						<td align=center>
+							<div id="graf_loader"></div>
+							<div id=graf_graf style="width:75%; height:600px"></div>
+							<input type=button id=graf_atu value=Atualizar>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</td>
+	</tr>
+</table>
+</body>
+</html>
